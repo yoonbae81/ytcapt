@@ -2,6 +2,8 @@ services:
   ytcapt:
     build: .
     container_name: ytcapt
+    volumes:
+      - CHANGE_TO_COMPOSE_DATA_PATH/ytcapt:/app
     ports:
       - "8080:8080"
     restart: unless-stopped  # Automatically restart unless stopped

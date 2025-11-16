@@ -1,21 +1,20 @@
 # Use official Python 3.9 slim image
 FROM python:3.9-slim
 
-# Set working directory inside the container
+# Set working directory
 WORKDIR /app
 
-# Install git for cloning repository
+# Install git only
 RUN apt-get update && \
     apt-get install -y git --no-install-recommends && \
-    apt-get clean
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Clone the GitHub repository into the working directory
-RUN git clone https://github.com/yoonbae81/ytcapt.git .
+# Copy entrypoint script into container
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh
 
-# Install Python dependencies from requirements.txt in the root directory
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Default command to run the Bottle web app (located under src/)
+# Expose port 8080 (for Bottle app)
 EXPOSE 8080
-CMD ["python", "src/app.py"]
+
+# Set entrypoint script
+ENTRYPOINT ["/entrypoint.sh"]
