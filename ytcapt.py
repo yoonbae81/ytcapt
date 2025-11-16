@@ -191,6 +191,14 @@ def retrieve_subtitle_file(url: str, lang: str, force_dl: bool) -> tuple[str, di
         except YoutubeDLError as e:
             error_message = str(e)
             
+            # Check for bot-detection related errors
+            if "confirm you’re not a bot" in error_message or \
+               "Please sign in" in error_message:
+                raise DownloadError(
+                    f"Access Denied: YouTube blocked the request, requiring sign-in "
+                    f"to confirm you are not a bot. Try passing cookies via the ydl_opts"
+                )
+            
             # Check for 429 error (Too Many Requests)
             if "429" in error_message or "Too Many Requests" in error_message:
                 raise DownloadError(

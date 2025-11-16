@@ -12,7 +12,6 @@ import re
 import tempfile
 from contextlib import redirect_stderr
 from io import StringIO
-import bottle
 from bottle import Bottle, request, template, run, static_file, TEMPLATE_PATH
 
 
