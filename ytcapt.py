@@ -13,6 +13,7 @@ import argparse
 import re
 from contextlib import redirect_stderr
 from io import StringIO
+from typing import Optional
 import tempfile
 import json
 import importlib 
@@ -61,7 +62,7 @@ class ParsingError(SubtitleError):
 
 # --- (4) Core Logic Functions ---
 
-def _parse_video_id(url: str) -> str | None:
+def _parse_video_id(url: str) -> Optional[str]:
     """
     Parses a YouTube URL to find the video ID.
     Handles various YouTube URL formats and validates length.

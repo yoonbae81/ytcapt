@@ -36,7 +36,7 @@ The project maintains a flexible architecture:
 
 ## 🛠️ Setup and Installation
 
-This program requires Python 3.8+ and the following libraries.
+This program requires Python 3.9+ and the following libraries.
 
 Clone Repository:
 ```
