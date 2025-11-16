@@ -110,6 +110,13 @@ def process_url(url: str, lang: str) -> dict:
                 # Rely on ytcapt.py's exception structure for clean message
                 raise SubtitleError(f"Failed to check URL: {e}")
 
+    if info is None:
+        raise DownloadError(
+            "Video information extraction failed: Request likely blocked by YouTube "
+            "due to bot detection or access restrictions (e.g., private/restricted video, "
+            "or requiring sign-in)."
+        )
+
     video_type = info.get('_type', 'video')
 
     # Step 2: Handle Playlists
