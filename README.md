@@ -41,14 +41,14 @@ This program requires Python 3.9+ and the following libraries.
 Clone Repository:
 ```
 git clone https://github.com/yoonbae81/ytcapt
-cd ytcapt
+cd ytcapt/src
 ```
 
 Install Dependencies:
 A requirements.txt file containing yt-dlp and bottle is required.
 
 ```
-pip install -r requirements.txt
+pip install -r ../requirements.txt
 ```
 
 ## ⚙️ Usage
@@ -102,7 +102,7 @@ python ytcapt.py "https://example.com/video?v=XXXXXXXXXXX" -f
 ## 📂 Project Structure
 
 ```
-/ytcapt
+/ytcapt/src
 |
 |-- app.py             # Bottle web server application
 |-- ytcapt.py          # Core logic module and CLI script
