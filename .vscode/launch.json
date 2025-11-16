@@ -1,0 +1,52 @@
+{
+    // VS Code 디버거에서 사용하는 구성 버전
+    "version": "0.2.0",
+
+    // 실행 시 사용자 입력을 받기 위한 섹션 (ytcapt.py 용)
+    "inputs": [
+        {
+            "id": "videoURL", // 구성에서 참조할 고유 ID
+            "type": "promptString", // 텍스트 입력창을 띄움
+            "description": "URL:", // 프롬프트에 표시될 메시지
+            "default": "https://www.youtube.com/watch?v=jQdQB8BEQY0" // 기본값
+        }
+    ],
+
+    // "실행 및 디버그" 탭에 표시될 실행 구성 목록
+    "configurations": [
+        {
+            // --- 신규 추가: app.py (Bottle 서버) 실행 구성 ---
+            "name": "Run Bottle Web App (app.py)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/app.py", // app.py 파일 실행
+            "console": "integratedTerminal",
+            "args": [] // 웹 서버 실행에는 인수가 필요 없음
+        },
+        {
+            // (권장) 실행 시 URL을 묻는 구성
+            "name": "ytcapt.py (URL 프롬프트)",
+            "type": "python", // 디버거 타입
+            "request": "launch", // 프로그램 시작
+            "program": "${workspaceFolder}/ytcapt.py", // 실행할 파일 (프로젝트 루트의 ytcapt.py)
+            "console": "integratedTerminal", // 결과를 VS Code 통합 터미널에 표시
+            "args": [
+                "${input:videoURL}", // 'inputs' 섹션에서 정의한 ID 사용
+                "-l", "ko" // 기본 언어 (필요시 'en' 등으로 수정)
+                // "--force-dl" // 캐시 무시 테스트 시 주석 해제
+            ]
+        },
+        {
+            // (대안) URL을 코-드에 직접 하드코딩하는 구성
+            "name": "ytcapt.py (하드코딩)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/ytcapt.py",
+            "console": "integratedTerminal",
+            "args": [
+                "https://www.youtube.com/watch?v=Mo1A45ShcMo", // 테스트할 URL을 여기에 직접 입력
+                "-l", "en"
+            ]
+        }
+    ]
+}
