@@ -10,8 +10,6 @@ import sys
 import os
 import re
 import tempfile
-from contextlib import redirect_stderr
-from io import StringIO
 from bottle import Bottle, request, template, run, static_file, TEMPLATE_PATH
 
 
@@ -19,8 +17,7 @@ from bottle import Bottle, request, template, run, static_file, TEMPLATE_PATH
 try:
     # yt-dlp is imported here for internal use (fast info check)
     # but the main logic relies on importing ytcapt.py
-    import yt_dlp
-    from yt_dlp.utils import YoutubeDLError
+    pass
 except ImportError:
     # This check is less critical here since ytcapt.py does the main check
     pass 
@@ -28,7 +25,10 @@ except ImportError:
 # --- Import core logic from ytcapt ---
 try:
     from ytcapt import (
-        retrieve_subtitle_file,
+        _parse_video_id,
+        check_and_get_srt_cache,
+        extract_video_info,
+        download_and_cache_subtitle,
         extract_pure_text_lines,
         refine_sentences,
         SubtitleError,
@@ -59,92 +59,27 @@ DOWNLOAD_DIR = os.path.join(tempfile.gettempdir(), "ytcapt_downloads")
 def sanitize_filename(filename: str) -> str:
     """
     Sanitizes a string to be a safe filename for Windows/macOS/Linux.
-    Maintains single spaces and removes leading/trailing dots/spaces.
     """
     if not filename:
         return "Untitled"
-    
-    # 1. 시스템 파일명 금지 문자 (Windows/Linux)를 공백으로 대체
     invalid_chars = r'[<>:"/\\|?*\x00-\x1F]'
     safe_name = re.sub(invalid_chars, ' ', filename)
-    
-    # 2. 이모지 및 파일명에 혼란을 줄 수 있는 기타 특수 기호를 제거
     safe_name = re.sub(r'[^\w\s\.-]', ' ', safe_name)
-    
-    # 3. 연속된 공백을 단일 공백으로 압축
-    safe_name = re.sub(r'\s+', ' ', safe_name)
-    
-    # 4. 파일명 앞뒤의 공백 또는 점(.)을 제거하여 확장자 앞의 문제를 방지
-    safe_name = safe_name.strip(' .')
-    
+    safe_name = re.sub(r'\s+', ' ', safe_name).strip(' .')
     if not safe_name:
         return "Untitled File"
-        
-    # 5. 최대 길이 제한 (200자)
-    if len(safe_name) > 200:
-        safe_name = safe_name[:200]
-        
-    return safe_name
+    return safe_name[:200]
 
-def process_url(url: str, lang: str) -> dict:
+def _process_single_video(url: str, lang: str, srt_filepath: str, video_info: dict) -> dict:
     """
-    Main logic to check URL type and process it.
-    Returns a dictionary indicating the result type and data.
+    Processes a single video given the SRT file path and video info.
+    This is the final step for both cached and newly downloaded videos.
     """
-    
-    # Step 1: Check if it's a playlist (fast, no download)
-    ydl_opts = {
-        'quiet': True,
-        'skip_download': True,
-        'extract_flat': True,
-        'ignoreerrors': True,
-    }
-    
-    info = None
-    with redirect_stderr(StringIO()):
-        # Use yt_dlp directly for the fast info check
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            try:
-                info = ydl.extract_info(url, download=False)
-            except Exception as e:
-                # Rely on ytcapt.py's exception structure for clean message
-                raise SubtitleError(f"Failed to check URL: {e}")
-
-    if info is None:
-        raise DownloadError(
-            "Video information extraction failed: Request likely blocked by YouTube "
-            "due to bot detection or access restrictions (e.g., private/restricted video, "
-            "or requiring sign-in)."
-        )
-
-    video_type = info.get('_type', 'video')
-
-    # Step 2: Handle Playlists
-    if video_type == 'playlist':
-        entries = []
-        for entry in info.get('entries', []):
-            if entry:
-                entries.append({
-                    'title': entry.get('title', 'Unknown Title'),
-                    'url': entry.get('url', '#')
-                })
-        return {
-            'type': 'playlist',
-            'title': info.get('title', 'Playlist'),
-            'entries': entries,
-            'lang': lang
-        }
-
-    # Step 3: Handle Single Video
-    # retrieve_subtitle_file handles cache, download logic, and raises clean SubtitleError
-    srt_filepath, video_info = retrieve_subtitle_file(url, lang, force_dl=False)
     lines = extract_pure_text_lines(srt_filepath)
     final_text = refine_sentences(lines, lang)
     
-    # Step 4: Construct output text for DOWNLOAD FILE (with header)
     video_title_full = video_info.get('title', 'Untitled')
     
-    # Download file content includes header (Title, URL, Blank Line, Text)
     output_text_for_download = (
         f"{video_title_full}\n"
         f"{url}\n"
@@ -152,11 +87,8 @@ def process_url(url: str, lang: str) -> dict:
         f"{final_text}"
     )
     
-    # Step 5: Save for download
     safe_title = sanitize_filename(video_title_full)
-    
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
-    
     filename = f"{safe_title}.{lang}.txt"
     filepath = os.path.join(DOWNLOAD_DIR, filename)
     
@@ -169,9 +101,51 @@ def process_url(url: str, lang: str) -> dict:
     return {
         'type': 'video',
         'title': video_title_full,
-        'text_content': final_text, # 웹페이지 textarea에는 순수 자막만 표시
+        'text_content': final_text,
         'download_url': f'download/{filename}'
     }
+
+def process_url(url: str, lang: str) -> dict:
+    """
+    Main logic to check URL type and process it, now with a cache-first approach.
+    """
+    # --- Step 1: Fast-path for cached single videos ---
+    video_id = _parse_video_id(url)
+    if video_id:
+        srt_filepath, video_info = check_and_get_srt_cache(video_id, lang)
+        if srt_filepath and video_info:
+            # Cache Hit! Process and return immediately.
+            return _process_single_video(url, lang, srt_filepath, video_info)
+
+    # --- Step 2: Cache Miss or Playlist - Go to network ---
+    video_info = extract_video_info(url, force_dl=False)
+
+    if not video_info:
+        raise DownloadError(
+            "Video information extraction failed. The URL may be private, invalid, or restricted."
+        )
+
+    video_type = video_info.get('_type', 'video')
+
+    # --- Step 3: Handle Playlists ---
+    if video_type == 'playlist':
+        entries = []
+        for entry in video_info.get('entries', []):
+            if entry:
+                entries.append({
+                    'title': entry.get('title', 'Unknown Title'),
+                    'url': entry.get('url', '#')
+                })
+        return {
+            'type': 'playlist',
+            'title': video_info.get('title', 'Playlist'),
+            'entries': entries,
+            'lang': lang
+        }
+
+    # --- Step 4: Handle newly fetched Single Video ---
+    srt_filepath = download_and_cache_subtitle(video_info, lang)
+    return _process_single_video(url, lang, srt_filepath, video_info)
 
 # --- (4) Bottle Routes ---
 
