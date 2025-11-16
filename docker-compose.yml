@@ -1,0 +1,7 @@
+services:
+  ytcapt:
+    build: .
+    container_name: ytcapt
+    ports:
+      - "8080:8080"
+    restart: unless-stopped  # Automatically restart unless stopped
