@@ -24,11 +24,9 @@ The project maintains a flexible architecture:
 
 - Targeted Download: Ensures high compatibility by strictly targeting auto-generated captions, which are available on almost all videos, maximizing the chance of successful extraction.
 
-- Playlist Handling: Accepts video playlist URLs, offering a selection menu to process individual videos within the list.
-
 - Error Handling: Provides user-friendly error messages, particularly for "HTTP 429: Too Many Requests," which indicates a likely region/IP restriction issue by the video platform.
 
-- Caching: Caches downloaded SRT files for 7 days based on video ID to reduce unnecessary network requests and processing time.
+- Caching: Caches downloaded text files (for transcripts and titles) for 7 days based on video ID to reduce unnecessary network requests and processing time.
 
 - Download Header: Downloaded .txt files include the original video title and URL in the first two lines for easy source tracking.
 
@@ -45,7 +43,7 @@ cd ytcapt/src
 ```
 
 Install Dependencies:
-A requirements.txt file containing yt-dlp and bottle is required.
+A requirements.txt file containing bottle, youtube-transcript-api, and requests is required.
 
 ```
 pip install -r ../requirements.txt
@@ -67,17 +65,17 @@ Open your browser to http://localhost:8080/.
 
 3. Operation:
 
-    - Enter a Video or Playlist URL.
+    - Enter a Video URL.
 
     - Select the target language (Korean or English).
 
-    - The app will display the refined text or a playlist selection menu.
+    - The app will display the refined text.
 
     - The download button saves the content with a safe filename derived from the video title.
 
 ### B. Command-Line Interface (CLI)
 
-Use `ytcapt.py` directly for script automation or batch processing.
+Use `ytcapt.py` directly for script automation or batch processing (for single videos only).
 
 1. Basic Usage (Korean):
 ```
@@ -113,6 +111,5 @@ python ytcapt.py "https://example.com/video?v=XXXXXXXXXXX" -f
 |
 +-- views/             # Bottle templates (Pico CSS applied)
     |-- home.tpl       # URL and Language input form
-    |-- result.tpl     # Display refined text and download links
-    +-- playlist.tpl   # List of videos for playlist selection
+    +-- result.tpl     # Display refined text and download links
 ```
