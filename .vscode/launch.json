@@ -19,7 +19,7 @@
             "name": "Run Bottle Web App (app.py)",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/app.py", // app.py 파일 실행
+            "program": "${workspaceFolder}/src/app.py", // app.py 파일 실행
             "console": "integratedTerminal",
             "args": [] // 웹 서버 실행에는 인수가 필요 없음
         },
@@ -28,7 +28,7 @@
             "name": "ytcapt.py (URL 프롬프트)",
             "type": "python", // 디버거 타입
             "request": "launch", // 프로그램 시작
-            "program": "${workspaceFolder}/ytcapt.py", // 실행할 파일 (프로젝트 루트의 ytcapt.py)
+            "program": "${workspaceFolder}/src/ytcapt.py", // 실행할 파일 (프로젝트 루트의 ytcapt.py)
             "console": "integratedTerminal", // 결과를 VS Code 통합 터미널에 표시
             "args": [
                 "${input:videoURL}", // 'inputs' 섹션에서 정의한 ID 사용
@@ -41,11 +41,13 @@
             "name": "ytcapt.py (하드코딩)",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/ytcapt.py",
+            "program": "${workspaceFolder}/src/ytcapt.py",
             "console": "integratedTerminal",
             "args": [
-                "https://www.youtube.com/watch?v=Mo1A45ShcMo", // 테스트할 URL을 여기에 직접 입력
-                "-l", "en"
+                "https://www.youtube.com/watch?v=jQdQB8BEQY0",
+                "-l", "ko"
+                // "https://www.youtube.com/watch?v=Mo1A45ShcMo", // 테스트할 URL을 여기에 직접 입력
+                // "-l", "en"
             ]
         }
     ]
