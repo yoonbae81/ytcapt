@@ -9,7 +9,16 @@
     <!-- Custom styling for responsiveness and aesthetics -->
     <style>
         .container {
+            padding-top: 1em;
             max-width: 768px; /* Use a reasonable max width for readability */
+        }
+        /* Reduce space between hgroup and article */
+        main.container > hgroup {
+            margin-bottom: 0;
+        }
+        main.container > article {
+            margin-top: 0;
+            padding-top: 2em; 
         }
         .error { 
             border: 1px solid var(--pico-del-color);

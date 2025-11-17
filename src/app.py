@@ -17,6 +17,7 @@ try:
     from ytcapt import (
         _parse_video_id,
         get_transcript_lines,
+        get_video_title,
         refine_sentences,
         SubtitleError,
         InvalidUrlError,
@@ -58,18 +59,20 @@ def process_url(url: str, lang: str) -> dict:
     if not video_id:
         raise InvalidUrlError("Could not parse a valid YouTube video ID from the URL.")
 
-    # Step 2: Get transcript lines. This function handles caching and downloading.
+    # Step 2: Get video title.
+    video_title = get_video_title(video_id)
+    if not video_title:
+        video_title = f"Video ID - {video_id}"
+
+    # Step 3: Get transcript lines. This function handles caching and downloading.
     lines = get_transcript_lines(video_id, lang, force_dl=False)
     if not lines:
         raise ParsingError("No text could be extracted from the subtitle data.")
 
-    # Step 3: Refine the transcript lines into sentences.
+    # Step 4: Refine the transcript lines into sentences.
     final_text = refine_sentences(lines, lang)
 
-    # Step 4: Prepare data for display and download.
-    # Since ytcapt no longer provides the title, we use the video_id.
-    video_title = f"Video ID - {video_id}"
-    
+    # Step 5: Prepare data for display and download.
     output_text_for_download = (
         f"{video_title}\n"
         f"{url}\n"

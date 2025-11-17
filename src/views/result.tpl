@@ -10,9 +10,15 @@
     
     <!-- Custom styles for button alignment and top padding removal -->
     <style>
-        /* Remove top padding from Pico's container */
         main.container {
-            padding-top: 0;
+            padding-top: 1em;
+        }
+        main.container > hgroup {
+            margin-bottom: 0;
+        }
+        main.container > article {
+            margin-top: 0;
+            padding-top: 2em; 
         }
         /* Ensures all items in the footer grid are vertically centered and stretch to uniform height */
         footer.grid {
@@ -30,15 +36,15 @@
 </head>
 <body>
     <main class="container">
+        <hgroup>
+            <h1>YT Caption Downloader</h1>
+            <p>Download and refine auto-generated video captions.</p>
+        </hgroup>
         <article>
-            <hgroup>
-                <h1>Caption Downloaded</h1>
-                <!-- Displays the original video title -->
-                <p>{{title}}</p>
-            </hgroup>
-            
+            <p>{{title}}</p>
+        
             <!-- Text area shows only the refined caption text -->
-            <textarea readonly id="caption-text" rows="20">{{text_content}}</textarea>
+            <textarea readonly id="caption-text" rows="15">{{text_content}}</textarea>
 
             <footer class="grid">
                 <!-- Back Button -->

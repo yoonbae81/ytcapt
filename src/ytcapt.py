@@ -13,10 +13,12 @@ import re
 import importlib
 import tempfile
 import argparse
+import html # Added for HTML unescaping
 from typing import Optional, List
 
 # --- (1) Library Imports ---
 try:
+    import requests
     from youtube_transcript_api import YouTubeTranscriptApi
     from youtube_transcript_api._errors import NoTranscriptFound, TranscriptsDisabled, VideoUnavailable, InvalidVideoId
 except ImportError:
@@ -27,6 +29,7 @@ except ImportError:
 CACHE_DIR = os.path.join(tempfile.gettempdir(), "ytcapt_cache")
 CACHE_DURATION_SECONDS = 7 * 24 * 60 * 60  # 7 days
 TRANSCRIPT_FILENAME_SUFFIX = ".txt"  # Use TXT for caching pure text lines
+TITLE_FILENAME_SUFFIX = ".title.txt" # Use TXT for caching the title
 
 # --- (3) Custom Exceptions ---
 class SubtitleError(Exception):
@@ -99,6 +102,46 @@ def get_transcript_lines(video_id: str, lang: str, force_dl: bool) -> List[str]:
         raise DownloadError(f"Could not retrieve transcript for video ID '{video_id}': {e}")
     except Exception as e:
         raise DownloadError(f"An unexpected error occurred during transcript download: {e}")
+
+def get_video_title(video_id: str) -> Optional[str]:
+    """
+    Fetches a video title by scraping its watch page. Caches the title.
+    """
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    cache_path = os.path.join(CACHE_DIR, f"{video_id}{TITLE_FILENAME_SUFFIX}")
+
+    # 1. Check cache
+    if os.path.exists(cache_path):
+        try:
+            if (time.time() - os.path.getmtime(cache_path)) <= CACHE_DURATION_SECONDS:
+                with open(cache_path, 'r', encoding='utf-8') as f:
+                    return f.read()
+        except OSError:
+            pass  # Ignore read errors and re-fetch
+
+    # 2. If no cache or expired, fetch via HTTP
+    try:
+        url = f"https://www.youtube.com/watch?v={video_id}"
+        headers = {
+            # A common user-agent to avoid simple blocks
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()  # Raise an exception for bad status codes
+
+        # Extract title using regex
+        match = re.search(r"<title>(.*?)</title>", response.text)
+        if match:
+            title = match.group(1).replace(" - YouTube", "").strip()
+            title = html.unescape(title) # Decode HTML entities
+            # Save to cache
+            with open(cache_path, 'w', encoding='utf-8') as f:
+                f.write(title)
+            return title
+        return None
+    except requests.RequestException as e:
+        print(f"Warning: Could not fetch video title for {video_id}: {e}", file=sys.stderr)
+        return None
 
 def _refine_default_sentences(lines: list[str]) -> str:
     """Default/English logic: Join all, then split by punctuation."""
