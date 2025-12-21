@@ -33,6 +33,7 @@ except ImportError:
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH.insert(0, os.path.join(SCRIPT_DIR, 'views'))
 DOWNLOAD_DIR = os.path.join(tempfile.gettempdir(), "ytcapt_downloads")
+BASE_URL = '/ytcapt'  # Base URL prefix for all routes
 
 # --- (3) Helper Functions ---
 
@@ -103,7 +104,7 @@ def process_url(url: str, lang: str) -> dict:
 
 app = Bottle()
 
-@app.route('/', method=['GET', 'POST'])
+@app.route(f'{BASE_URL}/', method=['GET', 'POST'])
 def index():
     """
     Main route. Handles GET (with or without params) and POST.
@@ -116,7 +117,7 @@ def index():
         lang = request.query.get('lang', 'ko').strip()
         
     if not url:
-        return template('home.tpl', url='', lang=lang, error=None)
+        return template('home.tpl', url='', lang=lang, error=None, baseurl=BASE_URL)
 
     try:
         result_data = process_url(url, lang)
@@ -125,24 +126,25 @@ def index():
         return template('result.tpl', 
             title=result_data['title'],
             text_content=result_data['text_content'],
-            download_url=result_data['download_url']
+            download_url=result_data['download_url'],
+            baseurl=BASE_URL
         )
             
     except SubtitleError as e:
         # Pass the custom, user-friendly error message directly to the template.
-        return template('home.tpl', url=url, lang=lang, error=str(e))
+        return template('home.tpl', url=url, lang=lang, error=str(e), baseurl=BASE_URL)
     except Exception as e:
         # Catch any other unexpected errors.
-        return template('home.tpl', url=url, lang=lang, error=f"An unexpected error occurred: {e}")
+        return template('home.tpl', url=url, lang=lang, error=f"An unexpected error occurred: {e}", baseurl=BASE_URL)
 
-@app.route('/download/<filename:path>')
+@app.route(f'{BASE_URL}/download/<filename:path>')
 def download(filename):
     """
     Serves the generated text file for download.
     """
     return static_file(filename, root=DOWNLOAD_DIR, download=filename)
 
-@app.route('/static/<filename:path>')
+@app.route(f'{BASE_URL}/static/<filename:path>')
 def server_static(filename):
     """
     Serves static CSS/JS files (if any).
@@ -151,5 +153,12 @@ def server_static(filename):
 
 # --- (5) Run Server ---
 if __name__ == "__main__":
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='ytcapt web application')
+    parser.add_argument('--port', type=int, default=8001, help='Port number to run the server on (default: 8001)')
+    args = parser.parse_args()
+    
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
-    run(app, host='0.0.0.0', port=8001, debug=True, reloader=True)
+    run(app, host='0.0.0.0', port=args.port, debug=True, reloader=True)
+

@@ -10,5 +10,6 @@ fi
 # Install dependencies every time for simplicity (optional, can optimize)
 pip install --no-cache-dir -r /app/requirements.txt
 
-# Run the app
-python /app/src/app.py
+# Run the app with port (default: 8001)
+PORT=${PORT:-8001}
+python /app/src/app.py --port $PORT

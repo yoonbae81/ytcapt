@@ -13,7 +13,5 @@ RUN apt-get update && \
 COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 8001
-
 # Set entrypoint script
 ENTRYPOINT ["/entrypoint.sh"]

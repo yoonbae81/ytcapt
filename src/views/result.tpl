@@ -48,7 +48,7 @@
 
             <footer class="grid">
                 <!-- Back Button -->
-                <a href="." role="button" class="secondary">New URL</a>
+                <a href="{{baseurl}}/" role="button" class="secondary">New URL</a>
 
                 <!-- Action Buttons (Copy and Download) -->
                 <button id="copy-btn">Copy Text</button>

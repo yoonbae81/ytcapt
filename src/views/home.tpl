@@ -37,7 +37,7 @@
         </hgroup>
         
         <article>
-            <form action="" method="POST">
+            <form action="{{baseurl}}/" method="POST">
                 <fieldset>
                     <label for="url">
                         Video or Playlist URL
