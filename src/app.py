@@ -10,7 +10,7 @@ import sys
 import os
 import re
 import tempfile
-from bottle import Bottle, request, template, run, static_file, TEMPLATE_PATH
+from bottle import Bottle, request, template, run, static_file, TEMPLATE_PATH, redirect
 
 # --- (1) Import core logic from the new ytcapt ---
 try:
@@ -107,13 +107,11 @@ app = Bottle()
 @app.route('/')
 def root_redirect():
     """Redirect root to base URL."""
-    from bottle import redirect
     return redirect(f'{BASE_URL}/')
 
 @app.route(BASE_URL)
 def baseurl_redirect():
     """Redirect /ytcapt to /ytcapt/ (with trailing slash)."""
-    from bottle import redirect
     return redirect(f'{BASE_URL}/')
 
 @app.route(f'{BASE_URL}/', method=['GET', 'POST'])
@@ -169,8 +167,18 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description='ytcapt web application')
     parser.add_argument('--port', type=int, default=8001, help='Port number to run the server on (default: 8001)')
+    parser.add_argument('--production', action='store_true', help='Run in production mode with optimizations')
     args = parser.parse_args()
     
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
-    run(app, host='0.0.0.0', port=args.port, debug=True, reloader=True)
+    
+    # Enable template caching in production
+    if args.production:
+        from bottle import TEMPLATES
+        TEMPLATES.clear()  # Clear any cached templates
+        # Run with production settings
+        run(app, host='0.0.0.0', port=args.port, debug=False, reloader=False, server='auto')
+    else:
+        # Development mode
+        run(app, host='0.0.0.0', port=args.port, debug=True, reloader=True)
 

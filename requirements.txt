@@ -1,3 +1,5 @@
 bottle
 youtube-transcript-api
 requests
+waitress
+gunicorn

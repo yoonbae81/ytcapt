@@ -6,4 +6,7 @@ services:
       - /srv/ytcapt:/app
     ports:
       - "8001:8001"
-    restart: unless-stopped  # Automatically restart unless stopped
+    environment:
+      - PRODUCTION_MODE=true # Run in production mode (set to false for debugging)
+      # - PORT=8001  # Optional: override default port
+    restart: unless-stopped # Automatically restart unless stopped
