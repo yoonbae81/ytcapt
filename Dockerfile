@@ -13,8 +13,7 @@ RUN apt-get update && \
 COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh
 
-# Expose port 8080 (for Bottle app)
-EXPOSE 8080
+EXPOSE 80010
 
 # Set entrypoint script
 ENTRYPOINT ["/entrypoint.sh"]
