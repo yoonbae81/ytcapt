@@ -2,8 +2,10 @@
 
 # Clone if repo not exists, else pull latest
 if [ ! -d /app/.git ]; then
+  echo "Cloning repository..."
   git clone https://github.com/yoonbae81/ytcapt.git /app
 else
+  echo "Updating repository..."
   git -C /app pull origin main
 fi
 
@@ -19,14 +21,13 @@ else
   echo "Dependencies already up to date, skipping installation."
 fi
 
-# Run the app with port (default: 8001) in production mode (default: enabled)
-PORT=${PORT:-8001}
+# Run the app in production mode (default: enabled)
 PRODUCTION_MODE=${PRODUCTION_MODE:-true}
 
 if [ "$PRODUCTION_MODE" = "true" ]; then
-  echo "Starting in PRODUCTION mode..."
-  python /app/src/app.py --port $PORT --production
+  echo "Starting in PRODUCTION mode on port 8000..."
+  python /app/src/app.py --port 8000 --production
 else
-  echo "Starting in DEVELOPMENT mode..."
-  python /app/src/app.py --port $PORT
+  echo "Starting in DEVELOPMENT mode on port 8000..."
+  python /app/src/app.py --port 8000
 fi

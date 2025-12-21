@@ -166,7 +166,7 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description='ytcapt web application')
-    parser.add_argument('--port', type=int, default=8001, help='Port number to run the server on (default: 8001)')
+    parser.add_argument('--port', type=int, default=8000, help='Port number to run the server on (default: 8000)')
     parser.add_argument('--production', action='store_true', help='Run in production mode with optimizations')
     args = parser.parse_args()
     
