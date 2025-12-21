@@ -152,4 +152,4 @@ def server_static(filename):
 # --- (5) Run Server ---
 if __name__ == "__main__":
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
-    run(app, host='0.0.0.0', port=8080, debug=True, reloader=True)
+    run(app, host='0.0.0.0', port=8001, debug=True, reloader=True)
