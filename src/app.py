@@ -104,6 +104,18 @@ def process_url(url: str, lang: str) -> dict:
 
 app = Bottle()
 
+@app.route('/')
+def root_redirect():
+    """Redirect root to base URL."""
+    from bottle import redirect
+    return redirect(f'{BASE_URL}/')
+
+@app.route(BASE_URL)
+def baseurl_redirect():
+    """Redirect /ytcapt to /ytcapt/ (with trailing slash)."""
+    from bottle import redirect
+    return redirect(f'{BASE_URL}/')
+
 @app.route(f'{BASE_URL}/', method=['GET', 'POST'])
 def index():
     """
