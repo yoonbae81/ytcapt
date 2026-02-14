@@ -1,0 +1,21 @@
+[Unit]
+Description=YT Caption Downloader Web Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory={{PROJECT_ROOT}}
+Environment="PATH={{PROJECT_ROOT}}/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+EnvironmentFile={{PROJECT_ROOT}}/.env
+
+ExecStart={{PROJECT_ROOT}}/.venv/bin/python {{PROJECT_ROOT}}/src/app.py --port ${PORT} --production
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ytcapt
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

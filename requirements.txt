@@ -3,3 +3,5 @@ youtube-transcript-api
 requests
 waitress
 gunicorn
+script-reporter
+python-dotenv
